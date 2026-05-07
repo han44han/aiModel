@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixNeuro - خريطة الورش</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #050d1a; color: white; height: 100vh; display: flex; flex-direction: column; }
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: rgba(5,13,26,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(77,184,255,0.1); z-index: 1000; }
+    .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .logo-icon { width: 38px; height: 38px; background: linear-gradient(135deg, #1a6fd4, #4db8ff); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .logo-text { font-size: 20px; font-weight: 800; color: white; }
+    .logo-text span { color: #4db8ff; }
+    .nav-links { display: flex; gap: 20px; }
+    .nav-links a { color: #aac4e0; text-decoration: none; font-size: 14px; }
+    .nav-links a:hover { color: #4db8ff; }
+    .main { display: flex; flex: 1; overflow: hidden; }
+    #map { flex: 1; }
+    .sidebar { width: 340px; background: rgba(5,13,26,0.97); overflow-y: auto; border-left: 1px solid rgba(77,184,255,0.08); padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+    .search-box input { width: 100%; padding: 11px 16px; background: rgba(10,25,50,0.8); border: 1.5px solid rgba(77,184,255,0.15); border-radius: 12px; color: white; font-size: 14px; outline: none; }
+    .search-box input:focus { border-color: #1a6fd4; }
+    .search-box input::placeholder { color: #2d4a6a; }
+    .btn-location { width: 100%; padding: 11px; background: linear-gradient(135deg, #1a6fd4, #1558a8); color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .sidebar-title { font-size: 12px; font-weight: 700; color: #7a9abf; letter-spacing: 1px; text-transform: uppercase; }
+    .workshop-card { background: rgba(13,31,60,0.7); border-radius: 14px; padding: 14px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: all 0.3s; }
+    .workshop-card:hover { border-color: rgba(77,184,255,0.3); background: rgba(26,111,212,0.1); }
+    .workshop-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px; }
+    .workshop-name { font-size: 14px; font-weight: 700; line-height: 1.3; }
+    .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-open { background: rgba(50,200,100,0.15); color: #50c864; border: 1px solid rgba(50,200,100,0.3); }
+    .badge-closed { background: rgba(255,100,100,0.15); color: #ff8080; border: 1px solid rgba(255,100,100,0.3); }
+    .workshop-rating { color: #f5a623; font-size: 12px; margin-bottom: 4px; }
+    .workshop-address { color: #7a9abf; font-size: 12px; margin-bottom: 8px; }
+    .services { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+    .service-tag { background: rgba(26,111,212,0.15); border: 1px solid rgba(77,184,255,0.2); padding: 2px 8px; border-radius: 6px; font-size: 11px; color: #4db8ff; }
+    .btn-details { width: 100%; padding: 8px; background: rgba(26,111,212,0.2); color: #4db8ff; border: 1px solid rgba(77,184,255,0.3); border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-details:hover { background: #1a6fd4; color: white; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+    .modal.show { display: flex; }
+    .modal-box { background: #0d1f3c; border-radius: 24px; padding: 30px; max-width: 420px; width: 90%; border: 1px solid rgba(77,184,255,0.2); box-shadow: 0 25px 60px rgba(0,0,0,0.5); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .modal-header h3 { font-size: 17px; font-weight: 700; }
+    .close-btn { background: rgba(255,255,255,0.1); border: none; color: white; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 16px; }
+    .modal-info { color: #aac4e0; font-size: 14px; line-height: 2.2; margin-bottom: 20px; }
+    .modal-info strong { color: white; }
+    .modal-btns { display: flex; gap: 10px; }
+    .btn-call { flex: 1; padding: 13px; background: linear-gradient(135deg, #1a6fd4, #1558a8); color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .btn-gmaps { flex: 1; padding: 13px; background: rgba(22,45,82,0.8); color: #4db8ff; border: 1px solid rgba(77,184,255,0.3); border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; }
+    @media (max-width: 768px) { .main { flex-direction: column; } .sidebar { width: 100%; height: 300px; } #map { height: 350px; } }
+  </style>
+</head>
+<body>
+  <nav>
+  <a href="index.html" class="logo">
+    <div class="logo-icon">🔧</div>
+    <div class="logo-text">Fix<span>NEURO</span></div>
+  </a>
+  <div class="nav-links">
+    <a href="account.html">👤 حسابي</a>
+    <a href="dia.html">🔍 تشخيص</a>
+    <a href="map.html">📍 الورش</a>
+    <a href="reports.html">📋 التقارير</a>
+    <a href="#" id="logoutBtn" style="color:#ff6b6b; font-weight:600;">خروج</a>
+  </div>
+</nav>
+  <div class="main">
+    <div class="sidebar">
+      <div class="search-box">
+        <input type="text" placeholder="🔍 ابحث بالاسم أو الحي..." id="searchInput" oninput="filterWorkshops()" />
+      </div>
+      <button class="btn-location" onclick="getLocation()">📍 أقرب ورشة مني</button>
+      <div class="sidebar-title" id="countLabel">ورش الصيانة في الرياض</div>
+      <div id="workshopsList"></div>
+    </div>
+    <div id="map"></div>
+  </div>
+  <div class="modal" id="modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalName"></h3>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-info" id="modalInfo"></div>
+      <div class="modal-btns">
+        <button class="btn-call" id="modalCall">📞 اتصل</button>
+        <a class="btn-gmaps" id="modalMaps" href="#" target="_blank">🗺️ Google Maps</a>
+      </div>
+    </div>
+  </div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module">
+    import { supabase } from './database.js'
+
+    const workshops = [
+      // شمال الرياض
+      { id:1, name:'مركز الخليج للسيارات', lat:24.8100, lng:46.7000, rating:4.9, reviews:634, phone:'0114500000', address:'حي الياسمين - شمال', services:['صيانة شاملة','قطع غيار','ضمان'], open:true, hours:'7ص-12م' },
+      { id:2, name:'ورشة النخيل للصيانة', lat:24.8300, lng:46.6800, rating:4.6, reviews:289, phone:'0501234567', address:'حي النخيل - شمال', services:['محرك','كهرباء','تكييف'], open:true, hours:'8ص-11م' },
+      { id:3, name:'مركز الريادة للسيارات', lat:24.8200, lng:46.7300, rating:4.5, reviews:412, phone:'0506666666', address:'حي الرمال - شمال', services:['صيانة دورية','زيوت','فلاتر'], open:true, hours:'7ص-10م' },
+      { id:4, name:'ورشة الشمال المتخصصة', lat:24.7900, lng:46.6500, rating:4.4, reviews:198, phone:'0509111222', address:'حي قرطبة - شمال', services:['فرامل','إطارات','بطاريات'], open:false, hours:'9ص-9م' },
+      { id:5, name:'مركز العليا للسيارات', lat:24.7800, lng:46.6900, rating:4.7, reviews:521, phone:'0114600000', address:'حي العليا - شمال', services:['تشخيص إلكتروني','صيانة دورية'], open:true, hours:'7ص-12م' },
+      { id:6, name:'ورشة الورود للصيانة', lat:24.8000, lng:46.7200, rating:4.3, reviews:156, phone:'0503333444', address:'حي الورود - شمال', services:['هيكل','دهان','تشخيص'], open:true, hours:'8ص-10م' },
+      // جنوب الرياض
+      { id:7, name:'مركز الأمانة للصيانة', lat:24.6200, lng:46.7100, rating:4.6, reviews:245, phone:'0509876543', address:'حي الشفا - جنوب', services:['تشخيص إلكتروني','زيوت','فلاتر'], open:true, hours:'7ص-11م' },
+      { id:8, name:'ورشة الجنوب المتخصصة', lat:24.6000, lng:46.6900, rating:4.2, reviews:178, phone:'0507654321', address:'حي عرقة - جنوب', services:['كهرباء','فرامل','إطارات'], open:true, hours:'8ص-10م' },
+      { id:9, name:'مركز بدر للسيارات', lat:24.5800, lng:46.7300, rating:4.5, reviews:334, phone:'0502222333', address:'حي بدر - جنوب', services:['محرك','ناقل حركة','تكييف'], open:false, hours:'9ص-9م' },
+      { id:10, name:'ورشة الفيصلية للصيانة', lat:24.6400, lng:46.7500, rating:4.4, reviews:267, phone:'0505555666', address:'حي الفيصلية - جنوب', services:['صيانة شاملة','قطع غيار'], open:true, hours:'7ص-11م' },
+      { id:11, name:'مركز الوطن للسيارات', lat:24.6100, lng:46.6700, rating:4.3, reviews:189, phone:'0508888999', address:'حي الدرعية - جنوب', services:['هيكل','دهان','تشخيص'], open:true, hours:'8ص-10م' },
+      // شرق الرياض
+      { id:12, name:'مركز النجم الذهبي', lat:24.6900, lng:46.8000, rating:4.4, reviews:156, phone:'0505555555', address:'حي الملز - شرق', services:['محرك','كهرباء','تكييف','فرامل'], open:true, hours:'8ص-11م' },
+      { id:13, name:'ورشة الشرق للسيارات', lat:24.7100, lng:46.8300, rating:4.6, reviews:298, phone:'0503333333', address:'حي الروابي - شرق', services:['تشخيص','إطارات','بطاريات'], open:true, hours:'9ص-9م' },
+      { id:14, name:'مركز المنار للصيانة', lat:24.7300, lng:46.8100, rating:4.5, reviews:223, phone:'0501111222', address:'حي المنار - شرق', services:['صيانة دورية','زيوت','تكييف'], open:true, hours:'7ص-11م' },
+      { id:15, name:'ورشة الثقة للسيارات', lat:24.6700, lng:46.8200, rating:4.3, reviews:145, phone:'0504444555', address:'حي الروضة - شرق', services:['كهرباء','فرامل','محرك'], open:false, hours:'8ص-10م' },
+      { id:16, name:'مركز الخبرة للصيانة', lat:24.7000, lng:46.8500, rating:4.7, reviews:389, phone:'0506677889', address:'حي النسيم - شرق', services:['صيانة شاملة','قطع غيار أصلية'], open:true, hours:'7ص-12م' },
+      // غرب الرياض
+      { id:17, name:'توكيلات الجميح للسيارات', lat:24.7100, lng:46.5800, rating:4.8, reviews:521, phone:'0114621000', address:'طريق الملك فهد - غرب', services:['صيانة دورية','قطع غيار','تشخيص'], open:true, hours:'7ص-12م' },
+      { id:18, name:'مركز الغرب للسيارات', lat:24.6900, lng:46.5600, rating:4.4, reviews:234, phone:'0501234999', address:'حي الصحافة - غرب', services:['محرك','ناقل حركة','كهرباء'], open:true, hours:'8ص-11م' },
+      { id:19, name:'ورشة الصحافة للصيانة', lat:24.7300, lng:46.5400, rating:4.3, reviews:167, phone:'0509876111', address:'حي الصحافة - غرب', services:['فرامل','إطارات','تكييف'], open:true, hours:'8ص-10م' },
+      { id:20, name:'مركز الدبلوماسي للسيارات', lat:24.7500, lng:46.5200, rating:4.6, reviews:312, phone:'0507654999', address:'حي الدبلوماسي - غرب', services:['تشخيص إلكتروني','صيانة شاملة'], open:false, hours:'9ص-9م' },
+      // وسط الرياض
+      { id:21, name:'مركز صيانة العربية', lat:24.6877, lng:46.7219, rating:4.7, reviews:312, phone:'0114621000', address:'طريق الملك عبدالله - وسط', services:['تشخيص إلكتروني','تغيير زيت','فرامل','كهرباء'], open:true, hours:'8ص-11م' },
+      { id:22, name:'ورشة النخبة للسيارات', lat:24.7000, lng:46.7100, rating:4.5, reviews:189, phone:'0501234567', address:'حي السليمانية - وسط', services:['محرك','ناقل حركة','تكييف'], open:true, hours:'8ص-10م' },
+      { id:23, name:'مركز الدقة للسيارات', lat:24.6800, lng:46.6900, rating:4.6, reviews:298, phone:'0503333333', address:'وسط الرياض', services:['تشخيص','إطارات','بطاريات'], open:true, hours:'9ص-9م' },
+      { id:24, name:'ورشة الخبراء المتخصصة', lat:24.7200, lng:46.7000, rating:4.4, reviews:210, phone:'0506543210', address:'حي العزيزية - وسط', services:['كهرباء','محرك','تكييف'], open:true, hours:'8ص-11م' },
+      { id:25, name:'مركز الإتقان للصيانة', lat:24.6600, lng:46.7300, rating:4.5, reviews:267, phone:'0508765432', address:'حي الجزيرة - وسط', services:['صيانة شاملة','قطع غيار'], open:false, hours:'8ص-10م' },
+    ]
+
+    let map, markers = [], currentWorkshops = [...workshops]
+
+    map = L.map('map').setView([24.7136, 46.6753], 12)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '©️ OpenStreetMap' }).addTo(map)
+
+    function addMarkers() {
+      markers.forEach(m => map.removeLayer(m))
+      markers = []
+      currentWorkshops.forEach(w => {
+        const marker = L.marker([w.lat, w.lng]).addTo(map)
+          .bindPopup(`<b>${w.name}</b><br>⭐ ${w.rating}<br>${w.address}`)
+        marker.on('click', () => showModal(w))
+        markers.push(marker)
+      })
+    }
+
+    function renderList() {
+      const list = document.getElementById('workshopsList')
+      document.getElementById('countLabel').innerText = `${currentWorkshops.length} ورشة في الرياض`
+      list.innerHTML = currentWorkshops.map(w => `
+        <div class="workshop-card" onclick='showModal(${JSON.stringify(w).replace(/'/g, "&#39;")})'>
+          <div class="workshop-header">
+            <div class="workshop-name">${w.name}</div>
+            <div class="badge ${w.open ? 'badge-open' : 'badge-closed'}">${w.open ? 'مفتوح' : 'مغلق'}</div>
+          </div>
+          <div class="workshop-rating">⭐ ${w.rating} (${w.reviews} تقييم)</div>
+          <div class="workshop-address">📍 ${w.address}</div>
+          <div class="services">${w.services.map(s => `<span class="service-tag">${s}</span>`).join('')}</div>
+          <button class="btn-details">عرض التفاصيل والاتصال</button>
+        </div>`).join('')
+    }
+
+    window.filterWorkshops = function() {
+      const q = document.getElementById('searchInput').value.toLowerCase()
+      currentWorkshops = q ? workshops.filter(w => w.name.includes(q) || w.address.includes(q) || w.services.some(s => s.includes(q))) : [...workshops]
+      renderList(); addMarkers()
+    }
+
+    window.getLocation = function() {
+      if (!navigator.geolocation) return
+      navigator.geolocation.getCurrentPosition(pos => {
+        const { latitude: lat, longitude: lng } = pos.coords
+        map.setView([lat, lng], 14)
+        L.marker([lat, lng]).addTo(map).bindPopup('📍 موقعك الحالي').openPopup()
+        currentWorkshops = [...workshops].sort((a, b) => {
+          const da = Math.hypot(a.lat - lat, a.lng - lng)
+          const db = Math.hypot(b.lat - lat, b.lng - lng)
+          return da - db
+        })
+        renderList(); addMarkers()
+      })
+    }
+
+    window.showModal = function(w) {
+      if (typeof w === 'string') w = JSON.parse(w)
+      document.getElementById('modalName').innerText = w.name
+      document.getElementById('modalInfo').innerHTML = `
+        <strong>العنوان:</strong> ${w.address}<br>
+        <strong>التقييم:</strong> ⭐ ${w.rating} (${w.reviews} تقييم)<br>
+        <strong>ساعات العمل:</strong> ${w.hours}<br>
+        <strong>الحالة:</strong> ${w.open ? '🟢 مفتوح الآن' : '🔴 مغلق'}<br>
+        <strong>الخدمات:</strong> ${w.services.join('، ')}`
+      document.getElementById('modalCall').onclick = () => window.location.href = `tel:${w.phone}`
+      document.getElementById('modalMaps').href = `https://www.google.com/maps/search/${encodeURIComponent(w.name + ' ' + w.address)}/@${w.lat},${w.lng},15z`
+      document.getElementById('modal').classList.add('show')
+      map.setView([w.lat, w.lng], 15)
+    }
+
+    window.closeModal = function() { document.getElementById('modal').classList.remove('show') }
+
+    addMarkers(); renderList()
+  </script>
+</body>
+</html>

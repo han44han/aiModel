@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixNeuro</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #020912; color: white; height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s ease; }
+    body.fade-out { opacity: 0; }
+    #canvas-container { position: fixed; inset: 0; z-index: 1; }
+    canvas { width: 100% !important; height: 100% !important; }
+    .ui { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; pointer-events: none; animation: fadeInUp 1.2s ease forwards; opacity: 0; }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .logo-row { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+    .logo-box { width: 52px; height: 52px; background: linear-gradient(135deg, #1a6fd4, #4db8ff); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 8px 25px rgba(26,111,212,0.6); }
+    .logo-text { font-size: 34px; font-weight: 800; letter-spacing: 3px; text-shadow: 0 0 30px rgba(77,184,255,0.4); }
+    .logo-text span { color: #4db8ff; }
+    .tagline { font-size: 15px; color: #7a9abf; letter-spacing: 1.5px; margin-bottom: 50vh; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+    .bottom-ui { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; flex-direction: column; align-items: center; gap: 12px; pointer-events: all; }
+    .progress-wrap { width: 180px; height: 2px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+    .progress-bar { height: 100%; width: 0%; background: linear-gradient(to right, #1a6fd4, #4db8ff); animation: fill 10s linear forwards; }
+    @keyframes fill { from{width:0%} to{width:100%} }
+    .skip-btn { font-size: 13px; color: #3d5a7a; cursor: pointer; transition: color 0.2s; border: none; background: none; }
+    .skip-btn:hover { color: #4db8ff; }
+    .glow-ring { position: fixed; bottom: 15%; left: 50%; transform: translateX(-50%); width: 500px; height: 80px; background: radial-gradient(ellipse, rgba(26,111,212,0.25), transparent); filter: blur(20px); z-index: 2; border-radius: 50%; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  <div class="glow-ring"></div>
+
+  <div class="ui">
+    <div class="logo-row">
+      <div class="logo-box">🔧</div>
+      <div class="logo-text">Fix<span>NEURO</span></div>
+    </div>
+    <div class="tagline">شخّص أعطال سيارتك بذكاء</div>
+  </div>
+
+  <div class="bottom-ui">
+    <div class="progress-wrap"><div class="progress-bar"></div></div>
+    <button class="skip-btn" onclick="goLogin()">تخطي ←</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    function goLogin() {
+      document.body.classList.add('fade-out')
+      setTimeout(() => window.location.href = 'login.html', 800)
+    }
+    setTimeout(goLogin, 10000)
+
+    // Three.js Scene
+    const scene = new THREE.Scene()
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100)
+    camera.position.set(0, 1.5, 6)
+    camera.lookAt(0, 0, 0)
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.shadowMap.enabled = true
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
+    renderer.toneMappingExposure = 1.2
+    document.getElementById('canvas-container').appendChild(renderer.domElement)
+
+    // Lights
+    const ambientLight = new THREE.AmbientLight(0x4db8ff, 0.3)
+    scene.add(ambientLight)
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.5)
+    dirLight.position.set(5, 8, 5)
+    dirLight.castShadow = true
+    scene.add(dirLight)
+
+    const blueLight = new THREE.PointLight(0x4db8ff, 2, 15)
+    blueLight.position.set(-4, 2, 2)
+    scene.add(blueLight)
+
+    const rimLight = new THREE.PointLight(0x1a6fd4, 1.5, 10)
+    rimLight.position.set(4, 1, -3)
+    scene.add(rimLight)
+
+    const groundLight = new THREE.PointLight(0x0a3d7a, 1, 8)
+    groundLight.position.set(0, -1, 0)
+    scene.add(groundLight)
+
+    // Car Group
+    const car = new THREE.Group()
+    scene.add(car)
+
+    // Materials
+    const bodyMat = new THREE.MeshStandardMaterial({
+      color: 0x1a4a8a,
+      metalness: 0.9,
+      roughness: 0.1,
+      envMapIntensity: 1
+    })
+    const glassMat = new THREE.MeshStandardMaterial({
+      color: 0x88ccff,
+      metalness: 0.1,
+      roughness: 0,
+      transparent: true,
+      opacity: 0.35
+    })
+    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111122, metalness: 0.3, roughness: 0.7 })
+    const rimMat = new THREE.MeshStandardMaterial({ color: 0xccddff, metalness: 0.95, roughness: 0.05 })
+    const lightMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffaa, emissiveIntensity: 2 })
+    const tailMat = new THREE.MeshStandardMaterial({ color: 0xff2222, emissive: 0xff0000, emissiveIntensity: 1.5 })
+    const chromeMat = new THREE.MeshStandardMaterial({ color: 0xddeeff, metalness: 1, roughness: 0.05 })
+    const underMat = new THREE.MeshStandardMaterial({ color: 0x0a0a1a, metalness: 0.2, roughness: 0.8 })
+
+    // ===== CAR BODY =====
+    // Main body lower
+    const bodyGeo = new THREE.BoxGeometry(3.8, 0.55, 1.7)
+    const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat)
+    bodyMesh.position.set(0, 0.38, 0)
+    bodyMesh.castShadow = true
+    car.add(bodyMesh)
+
+    // Hood (front slope)
+    const hoodGeo = new THREE.BoxGeometry(1.2, 0.18, 1.65)
+    const hoodMesh = new THREE.Mesh(hoodGeo, bodyMat)
+    hoodMesh.position.set(-1.1, 0.72, 0)
+    hoodMesh.rotation.z = 0.08
+    hoodMesh.castShadow = true
+    car.add(hoodMesh)
+
+    // Trunk
+    const trunkGeo = new THREE.BoxGeometry(0.9, 0.15, 1.65)
+    const trunkMesh = new THREE.Mesh(trunkGeo, bodyMat)
+    trunkMesh.position.set(1.35, 0.72, 0)
+    trunkMesh.rotation.z = -0.05
+    car.add(trunkMesh)
+
+    // Cabin roof
+    const cabinGeo = new THREE.BoxGeometry(1.8, 0.55, 1.55)
+    const cabinMesh = new THREE.Mesh(cabinGeo, bodyMat)
+    cabinMesh.position.set(0.1, 1.0, 0)
+    cabinMesh.castShadow = true
+    car.add(cabinMesh)
+
+    // Roof round top
+    const roofGeo = new THREE.CylinderGeometry(0.78, 0.9, 1.75, 8, 1, false, 0, Math.PI)
+    const roofMesh = new THREE.Mesh(roofGeo, bodyMat)
+    roofMesh.rotation.z = Math.PI / 2
+    roofMesh.rotation.y = Math.PI / 2
+    roofMesh.position.set(0.1, 1.0, 0)
+    car.add(roofMesh)
+
+    // Windshield
+    const windGeo = new THREE.BoxGeometry(0.05, 0.7, 1.3)
+    const windMesh = new THREE.Mesh(windGeo, glassMat)
+    windMesh.position.set(-0.78, 0.95, 0)
+    windMesh.rotation.z = -0.5
+    car.add(windMesh)
+
+    // Rear glass
+    const rearGlassGeo = new THREE.BoxGeometry(0.05, 0.6, 1.3)
+    const rearGlassMesh = new THREE.Mesh(rearGlassGeo, glassMat)
+    rearGlassMesh.position.set(0.95, 0.92, 0)
+    rearGlassMesh.rotation.z = 0.45
+    car.add(rearGlassMesh)
+
+    // Side windows L
+    const sideWinGeo = new THREE.BoxGeometry(1.4, 0.42, 0.03)
+    const sideWinL = new THREE.Mesh(sideWinGeo, glassMat)
+    sideWinL.position.set(0.1, 1.0, 0.78)
+    car.add(sideWinL)
+
+    // Side windows R
+    const sideWinR = new THREE.Mesh(sideWinGeo, glassMat)
+    sideWinR.position.set(0.1, 1.0, -0.78)
+    car.add(sideWinR)
+
+    // Front bumper
+    const fBumperGeo = new THREE.BoxGeometry(0.22, 0.3, 1.6)
+    const fBumper = new THREE.Mesh(fBumperGeo, chromeMat)
+    fBumper.position.set(-1.98, 0.22, 0)
+    car.add(fBumper)
+
+    // Rear bumper
+    const rBumper = new THREE.Mesh(fBumperGeo, chromeMat)
+    rBumper.position.set(1.98, 0.22, 0)
+    car.add(rBumper)
+
+    // Headlights
+    const headGeo = new THREE.BoxGeometry(0.08, 0.14, 0.38)
+    const headL = new THREE.Mesh(headGeo, lightMat)
+    headL.position.set(-1.88, 0.4, 0.55)
+    car.add(headL)
+    const headR = new THREE.Mesh(headGeo, lightMat)
+    headR.position.set(-1.88, 0.4, -0.55)
+    car.add(headR)
+
+    // Tail lights
+    const tailGeo = new THREE.BoxGeometry(0.08, 0.16, 0.42)
+    const tailL = new THREE.Mesh(tailGeo, tailMat)
+    tailL.position.set(1.88, 0.42, 0.52)
+    car.add(tailL)
+    const tailR = new THREE.Mesh(tailGeo, tailMat)
+    tailR.position.set(1.88, 0.42, -0.52)
+    car.add(tailR)
+
+    // Grille
+    const grilleGeo = new THREE.BoxGeometry(0.06, 0.22, 1.0)
+    const grille = new THREE.Mesh(grilleGeo, new THREE.MeshStandardMaterial({ color: 0x111133, metalness: 0.8, roughness: 0.3 }))
+    grille.position.set(-1.9, 0.32, 0)
+    car.add(grille)
+
+    // Door lines (thin boxes)
+    const doorLineGeo = new THREE.BoxGeometry(0.02, 0.5, 0.02)
+    const doorLineMat = new THREE.MeshStandardMaterial({ color: 0x0a0a2a, metalness: 0.5, roughness: 0.5 })
+    const doorLine1L = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.5, 0.02), doorLineMat)
+    doorLine1L.position.set(-0.3, 0.4, 0.86)
+    car.add(doorLine1L)
+    const doorLine2L = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.5, 0.02), doorLineMat)
+    doorLine2L.position.set(0.5, 0.4, 0.86)
+    car.add(doorLine2L)
+
+    // Side skirts
+    const skirtGeo = new THREE.BoxGeometry(3.2, 0.1, 0.08)
+    const skirtL = new THREE.Mesh(skirtGeo, chromeMat)
+    skirtL.position.set(0, 0.1, 0.86)
+    car.add(skirtL)
+    const skirtR = new THREE.Mesh(skirtGeo, chromeMat)
+    skirtR.position.set(0, 0.1, -0.86)
+    car.add(skirtR)
+
+    // ===== WHEELS =====
+    function createWheel(x, z) {
+      const group = new THREE.Group()
+
+      // Tire
+      const tireGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.32, 24)
+      const tire = new THREE.Mesh(tireGeo, wheelMat)
+      tire.rotation.x = Math.PI / 2
+      group.add(tire)
+
+      // Rim outer
+      const rimGeo = new THREE.CylinderGeometry(0.28, 0.28, 0.34, 20)
+      const rim = new THREE.Mesh(rimGeo, rimMat)
+      rim.rotation.x = Math.PI / 2
+      group.add(rim)
+
+      // Hub
+      const hubGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.36, 12)
+      const hub = new THREE.Mesh(hubGeo, rimMat)
+      hub.rotation.x = Math.PI / 2
+      group.add(hub)
+
+      // Spokes (5 spokes)
+      for (let i = 0; i < 5; i++) {
+        const spokeGeo = new THREE.BoxGeometry(0.05, 0.18, 0.35)
+        const spoke = new THREE.Mesh(spokeGeo, rimMat)
+        spoke.rotation.z = (i / 5) * Math.PI * 2
+        spoke.position.set(Math.cos((i / 5) * Math.PI * 2) * 0.1, Math.sin((i / 5) * Math.PI * 2) * 0.1, 0)
+        spoke.rotation.x = Math.PI / 2
+        group.add(spoke)
+      }
+
+      // Brake disc
+      const discGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.04, 16)
+      const disc = new THREE.Mesh(discGeo, new THREE.MeshStandardMaterial({ color: 0x333344, metalness: 0.7, roughness: 0.4 }))
+      disc.rotation.x = Math.PI / 2
+      group.add(disc)
+
+      // Caliper
+      const caliperGeo = new THREE.BoxGeometry(0.12, 0.08, 0.08)
+      const caliper = new THREE.Mesh(caliperGeo, new THREE.MeshStandardMaterial({ color: 0x1a6fd4, metalness: 0.8, roughness: 0.2 }))
+      caliper.position.set(0.18, 0.12, 0)
+      group.add(caliper)
+
+      group.position.set(x, 0, z)
+      group.castShadow = true
+      return group
+    }
+
+    const wheelFL = createWheel(-1.2, 0.92)
+    const wheelFR = createWheel(-1.2, -0.92)
+    const wheelRL = createWheel(1.15, 0.92)
+    const wheelRR = createWheel(1.15, -0.92)
+    car.add(wheelFL, wheelFR, wheelRL, wheelRR)
+
+    // ===== GROUND / SHADOW PLANE =====
+    const groundGeo = new THREE.PlaneGeometry(12, 8)
+    const groundMat = new THREE.MeshStandardMaterial({
+      color: 0x020912,
+      metalness: 0.3,
+      roughness: 0.8,
+      transparent: true,
+      opacity: 0.8
+    })
+    const ground = new THREE.Mesh(groundGeo, groundMat)
+    ground.rotation.x = -Math.PI / 2
+    ground.position.y = -0.38
+    ground.receiveShadow = true
+    scene.add(ground)
+
+    // Reflection glow under car
+    const glowGeo = new THREE.PlaneGeometry(3.5, 1.5)
+    const glowMat = new THREE.MeshBasicMaterial({
+      color: 0x1a6fd4,
+      transparent: true,
+      opacity: 0.15
+    })
+    const glowPlane = new THREE.Mesh(glowGeo, glowMat)
+    glowPlane.rotation.x = -Math.PI / 2
+    glowPlane.position.y = -0.37
+    scene.add(glowPlane)
+
+    // ===== PARTICLES =====
+    const particlesGeo = new THREE.BufferGeometry()
+    const count = 120
+    const positions = new Float32Array(count * 3)
+    for (let i = 0; i < count * 3; i++) {
+      positions[i] = (Math.random() - 0.5) * 18
+    }
+    particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    const particlesMat = new THREE.PointsMaterial({ color: 0x4db8ff, size: 0.04, transparent: true, opacity: 0.5 })
+    const particles = new THREE.Points(particlesGeo, particlesMat)
+    scene.add(particles)
+
+    // Fog
+    scene.fog = new THREE.FogExp2(0x020912, 0.06)
+
+    // ===== ANIMATION =====
+    let time = 0
+    function animate() {
+      requestAnimationFrame(animate)
+      time += 0.01
+
+      // Float animation
+      car.position.y = Math.sin(time * 0.8) * 0.08
+      car.rotation.y = Math.sin(time * 0.3) * 0.08
+
+      // Wheel spin
+      const wheelSpeed = 0.5
+      wheelFL.children[0].rotation.y += wheelSpeed
+      wheelFR.children[0].rotation.y += wheelSpeed
+      wheelRL.children[0].rotation.y += wheelSpeed
+      wheelRR.children[0].rotation.y += wheelSpeed
+
+      // Light pulse
+      blueLight.intensity = 1.8 + Math.sin(time * 2) * 0.4
+      rimLight.intensity = 1.2 + Math.cos(time * 1.5) * 0.3
+
+      // Particles slow rotate
+      particles.rotation.y += 0.001
+
+      renderer.render(scene, camera)
+    }
+    animate()
+
+    // Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight
+      camera.updateProjectionMatrix()
+      renderer.setSize(window.innerWidth, window.innerHeight)
+    })
+  </script>
+</body>
+</html>

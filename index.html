@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixNeuro - Car Doctor</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #050d1a; color: white; min-height: 100vh; }
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 30px; background: rgba(5,13,26,0.95); backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(77,184,255,0.1); }
+    .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #1a6fd4, #4db8ff); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 15px rgba(26,111,212,0.4); }
+    .logo-text { font-size: 22px; font-weight: 800; color: white; }
+    .logo-text span { color: #4db8ff; }
+    .nav-links { display: flex; align-items: center; gap: 20px; }
+    .nav-links a { color: #aac4e0; text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: #4db8ff; }
+    .btn-nav { background: linear-gradient(135deg, #1a6fd4, #1558a8) !important; color: white !important; padding: 9px 22px; border-radius: 20px; font-weight: 600 !important; }
+    .logout-btn { color: #ff6b6b !important; font-weight: 600 !important; }
+    .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; background: radial-gradient(ellipse at 60% 50%, rgba(26,111,212,0.15) 0%, transparent 60%), #050d1a; }
+    .hero-content { position: relative; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; max-width: 1100px; margin: 0 auto; padding: 60px 30px; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(26,111,212,0.15); border: 1px solid rgba(77,184,255,0.3); padding: 8px 18px; border-radius: 50px; font-size: 13px; color: #4db8ff; margin-bottom: 25px; }
+    .hero h1 { font-size: 46px; font-weight: 800; line-height: 1.2; margin-bottom: 18px; }
+    .hero h1 .highlight { background: linear-gradient(135deg, #4db8ff, #1a6fd4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: block; }
+    .hero p { font-size: 17px; color: #7a9abf; line-height: 1.8; margin-bottom: 35px; }
+    .hero-btns { display: flex; gap: 15px; flex-wrap: wrap; }
+    .btn-primary { background: linear-gradient(135deg, #1a6fd4, #1558a8); color: white; padding: 14px 35px; border-radius: 12px; text-decoration: none; font-size: 15px; font-weight: 700; transition: all 0.3s; box-shadow: 0 8px 25px rgba(26,111,212,0.4); display: inline-block; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 35px rgba(26,111,212,0.6); }
+    .btn-outline { background: transparent; color: #4db8ff; padding: 14px 35px; border-radius: 12px; text-decoration: none; font-size: 15px; font-weight: 600; border: 1.5px solid rgba(77,184,255,0.4); transition: all 0.3s; display: inline-block; }
+    .btn-outline:hover { background: rgba(77,184,255,0.1); }
+    .hero-visual { display: flex; align-items: center; justify-content: center; }
+    .car-wrap { position: relative; width: 100%; max-width: 500px; }
+    .car-glow { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); width: 70%; height: 30px; background: radial-gradient(ellipse, rgba(26,111,212,0.5), transparent); filter: blur(15px); }
+    .car-svg { width: 100%; filter: drop-shadow(0 20px 40px rgba(26,111,212,0.4)); animation: carFloat 4s ease-in-out infinite; }
+    @keyframes carFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+    .float-badge { position: absolute; background: rgba(13,31,60,0.9); border: 1px solid rgba(77,184,255,0.3); border-radius: 12px; padding: 8px 14px; font-size: 13px; font-weight: 600; color: #4db8ff; backdrop-filter: blur(10px); animation: badgeFloat 5s ease-in-out infinite; }
+    .fb1 { top: 5%; right: -5%; animation-delay: 0s; }
+    .fb2 { bottom: 25%; left: -5%; animation-delay: 2s; }
+    .fb3 { top: 45%; right: -12%; animation-delay: 1s; }
+    @keyframes badgeFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    .dashboard { max-width: 1100px; margin: 0 auto; padding: 40px 30px; display: none; }
+    .welcome-banner { background: linear-gradient(135deg, rgba(26,111,212,0.25) 0%, rgba(13,31,60,0.8) 100%); border-radius: 24px; padding: 35px 40px; border: 1px solid rgba(77,184,255,0.2); margin-bottom: 35px; display: flex; justify-content: space-between; align-items: center; position: relative; overflow: hidden; }
+    .welcome-banner::before { content: ''; position: absolute; top: -50%; right: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(77,184,255,0.08), transparent); border-radius: 50%; }
+    .welcome-left h2 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+    .welcome-left h2 span { color: #4db8ff; }
+    .welcome-left p { color: #7a9abf; font-size: 15px; margin-top: 5px; }
+    .welcome-avatar { width: 80px; height: 80px; background: linear-gradient(135deg, #1a6fd4, #4db8ff); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; box-shadow: 0 10px 30px rgba(26,111,212,0.4); flex-shrink: 0; }
+    .section-label { font-size: 13px; font-weight: 700; color: #7a9abf; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
+    .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 35px; }
+    .service-card { background: rgba(13,31,60,0.7); border-radius: 22px; padding: 28px; text-decoration: none; color: white; border: 1px solid rgba(255,255,255,0.06); transition: all 0.3s; display: flex; flex-direction: column; gap: 14px; position: relative; overflow: hidden; }
+    .service-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 22px 22px 0 0; opacity: 0; transition: opacity 0.3s; }
+    .service-card:hover { transform: translateY(-6px); border-color: rgba(77,184,255,0.25); box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+    .service-card:hover::before { opacity: 1; }
+    .card-blue::before { background: linear-gradient(to right, #1a6fd4, #4db8ff); }
+    .card-green::before { background: linear-gradient(to right, #00c853, #69f0ae); }
+    .card-orange::before { background: linear-gradient(to right, #ff6d00, #ffab40); }
+    .card-purple::before { background: linear-gradient(to right, #aa00ff, #e040fb); }
+    .service-icon-wrap { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+    .bg-blue { background: rgba(26,111,212,0.2); border: 1px solid rgba(77,184,255,0.2); }
+    .bg-green { background: rgba(0,200,83,0.15); border: 1px solid rgba(0,200,83,0.2); }
+    .bg-orange { background: rgba(255,109,0,0.15); border: 1px solid rgba(255,109,0,0.2); }
+    .bg-purple { background: rgba(170,0,255,0.15); border: 1px solid rgba(170,0,255,0.2); }
+    .service-card h3 { font-size: 18px; font-weight: 700; }
+    .service-card p { font-size: 13px; color: #7a9abf; line-height: 1.6; }
+    .card-arrow { margin-top: auto; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #4db8ff; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 35px; }
+    .stat-box { background: rgba(13,31,60,0.6); border-radius: 18px; padding: 22px; border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 16px; }
+    .stat-icon { font-size: 28px; }
+    .stat-text .num { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #4db8ff, #1a6fd4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-text .lbl { font-size: 13px; color: #7a9abf; margin-top: 3px; }
+    .features-section { padding: 80px 30px; background: rgba(13,31,60,0.2); }
+    .section-title { text-align: center; margin-bottom: 50px; }
+    .section-title h2 { font-size: 34px; font-weight: 800; margin-bottom: 12px; }
+    .section-title p { color: #7a9abf; font-size: 16px; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 22px; max-width: 1100px; margin: 0 auto; }
+    .feature-card { background: rgba(13,31,60,0.6); border-radius: 22px; padding: 30px; text-decoration: none; color: white; border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s; }
+    .feature-card:hover { transform: translateY(-5px); border-color: rgba(77,184,255,0.2); }
+    .feature-icon { width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, rgba(26,111,212,0.3), rgba(77,184,255,0.2)); display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 18px; }
+    .feature-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+    .feature-card p { color: #7a9abf; font-size: 14px; line-height: 1.7; }
+    .steps-section { padding: 80px 30px; }
+    .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
+    .step-card { background: rgba(13,31,60,0.5); border-radius: 20px; padding: 28px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+    .step-num { width: 54px; height: 54px; background: linear-gradient(135deg, #1a6fd4, #4db8ff); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; margin: 0 auto 16px; box-shadow: 0 6px 20px rgba(26,111,212,0.4); }
+    .step-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+    .step-card p { color: #7a9abf; font-size: 13px; line-height: 1.6; }
+    .cta { padding: 80px 30px; text-align: center; background: radial-gradient(ellipse at center, rgba(26,111,212,0.1) 0%, transparent 70%); }
+    .cta h2 { font-size: 36px; font-weight: 800; margin-bottom: 15px; }
+    .cta p { color: #7a9abf; font-size: 16px; margin-bottom: 35px; }
+    footer { background: rgba(5,13,26,0.95); padding: 22px; text-align: center; color: #3d5a7a; font-size: 13px; border-top: 1px solid rgba(255,255,255,0.04); }
+    @media (max-width: 768px) {
+      .hero-content { grid-template-columns: 1fr; text-align: center; }
+      .hero-visual { display: none; }
+      .hero h1 { font-size: 32px; }
+      .hero-btns { justify-content: center; }
+      .welcome-banner { flex-direction: column; gap: 20px; text-align: center; }
+      .dashboard { padding: 20px 15px; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html" class="logo">
+      <div class="logo-icon">🔧</div>
+      <div class="logo-text">Fix<span>NEURO</span></div>
+    </a>
+    <div class="nav-links" id="guestNav">
+      <a href="login.html">دخول</a>
+      <a href="register.html" class="btn-nav">ابدأ مجاناً</a>
+    </div>
+    <div class="nav-links" id="userNav" style="display:none;">
+      <a href="account.html">👤 حسابي</a>
+      <a href="dia.html">🔍 تشخيص</a>
+      <a href="map.html">📍 الورش</a>
+      <a href="reports.html">📋 التقارير</a>
+      <a href="#" id="logoutBtn" class="logout-btn">خروج</a>
+    </div>
+  </nav>
+
+  <!-- GUEST -->
+  <div id="guestSection">
+    <section class="hero">
+      <div class="hero-content">
+        <div>
+          <div class="hero-badge">🔧 منصة ذكاء اصطناعي لتشخيص السيارات</div>
+          <h1>شخّص عطل سيارتك<span class="highlight">قبل الورشة</span></h1>
+          <p>أدخل وصف المشكلة أو ارفع صورة، واحصل على تشخيص دقيق فوراً مع خريطة أقرب ورش الصيانة في منطقتك.</p>
+          <div class="hero-btns">
+            <a href="register.html" class="btn-primary">ابدأ مجاناً</a>
+            <a href="dia.html" class="btn-outline">جرّب الآن</a>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="car-wrap">
+            <div class="car-glow"></div>
+            <svg class="car-svg" viewBox="0 0 500 280" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="b1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#1a6fd4"/><stop offset="100%" style="stop-color:#0d3a7a"/></linearGradient>
+                <linearGradient id="b2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#4db8ff"/><stop offset="100%" style="stop-color:#1a6fd4"/></linearGradient>
+                <linearGradient id="b3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#a8d8ff;stop-opacity:0.8"/><stop offset="100%" style="stop-color:#4db8ff;stop-opacity:0.4"/></linearGradient>
+              </defs>
+              <ellipse cx="250" cy="262" rx="180" ry="14" fill="rgba(26,111,212,0.25)"/>
+              <rect x="60" y="160" width="380" height="80" rx="15" fill="url(#b1)"/>
+              <path d="M 140 160 Q 160 100 200 90 L 320 90 Q 360 100 370 160 Z" fill="url(#b2)"/>
+              <path d="M 165 155 Q 175 110 205 100 L 295 100 Q 320 110 330 155 Z" fill="url(#b3)" opacity="0.9"/>
+              <rect x="145" y="120" width="50" height="38" rx="5" fill="url(#b3)" opacity="0.7"/>
+              <rect x="310" y="120" width="45" height="38" rx="5" fill="url(#b3)" opacity="0.7"/>
+              <rect x="55" y="210" width="40" height="18" rx="8" fill="#1a6fd4"/>
+              <rect x="405" y="210" width="40" height="18" rx="8" fill="#1a6fd4"/>
+              <rect x="65" y="185" width="35" height="14" rx="5" fill="#fff" opacity="0.9"/>
+              <rect x="70" y="187" width="25" height="10" rx="3" fill="#ffeb80"/>
+              <rect x="400" y="185" width="35" height="14" rx="5" fill="#ff4444" opacity="0.9"/>
+              <path d="M 100 240 Q 100 180 150 180 Q 200 180 200 240 Z" fill="#050d1a"/>
+              <path d="M 300 240 Q 300 180 350 180 Q 400 180 400 240 Z" fill="#050d1a"/>
+              <circle cx="150" cy="238" r="32" fill="#0a0a1a"/>
+              <circle cx="150" cy="238" r="23" fill="#1a2040"/>
+              <circle cx="150" cy="238" r="13" fill="#2a3060"/>
+              <circle cx="150" cy="238" r="5" fill="#4db8ff"/>
+              <line x1="150" y1="215" x2="150" y2="225" stroke="#4db8ff" stroke-width="2.5"/>
+              <line x1="150" y1="251" x2="150" y2="261" stroke="#4db8ff" stroke-width="2.5"/>
+              <line x1="127" y1="238" x2="137" y2="238" stroke="#4db8ff" stroke-width="2.5"/>
+              <line x1="163" y1="238" x2="173" y2="238" stroke="#4db8ff" stroke-width="2.5"/>
+              <circle cx="350" cy="238" r="32" fill="#0a0a1a"/>
+              <circle cx="350" cy="238" r="23" fill="#1a2040"/>
+              <circle cx="350" cy="238" r="13" fill="#2a3060"/>
+              <circle cx="350" cy="238" r="5" fill="#4db8ff"/>
+              <line x1="350" y1="215" x2="350" y2="225" stroke="#4db8ff" stroke-width="2.5"/>
+              <line x1="350" y1="251" x2="350" y2="261" stroke="#4db8ff" stroke-width="2.5"/>
+              <line x1="327" y1="238" x2="337" y2="238" stroke="#4db8ff" stroke-width="2.5"/>
+              <line x1="363" y1="238" x2="373" y2="238" stroke="#4db8ff" stroke-width="2.5"/>
+              <line x1="230" y1="163" x2="230" y2="235" stroke="rgba(77,184,255,0.25)" stroke-width="1.5"/>
+              <rect x="193" y="193" width="22" height="6" rx="3" fill="rgba(77,184,255,0.4)"/>
+              <rect x="243" y="193" width="22" height="6" rx="3" fill="rgba(77,184,255,0.4)"/>
+              <path d="M 160 103 Q 200 93 280 98" stroke="rgba(255,255,255,0.25)" stroke-width="2" fill="none"/>
+            </svg>
+            <div class="float-badge fb1">🔍 تشخيص ذكي</div>
+            <div class="float-badge fb2">📍 أقرب ورشة</div>
+            <div class="float-badge fb3">⚡ فوري</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="features-section">
+      <div class="section-title"><h2>لماذا FixNeuro؟</h2><p>كل ما تحتاجه لصيانة سيارتك في مكان واحد</p></div>
+      <div class="features-grid">
+        <a href="dia.html" class="feature-card"><div class="feature-icon">🤖</div><h3>تشخيص بالذكاء الاصطناعي</h3><p>أرسل وصف المشكلة أو صورة واحصل على تشخيص دقيق فوري</p></a>
+        <a href="map.html" class="feature-card"><div class="feature-icon">🗺️</div><h3>خريطة الورش الموثوقة</h3><p>اعثر على أقرب ورشة في منطقتك مع التقييمات وأوقات العمل</p></a>
+        <a href="reports.html" class="feature-card"><div class="feature-icon">📊</div><h3>تقارير مفصلة</h3><p>استعرض تاريخ تشخيصاتك ومصاريف الصيانة بشكل منظم</p></a>
+        <a href="account.html" class="feature-card"><div class="feature-icon">👤</div><h3>حسابك الشخصي</h3><p>أدر معلومات حسابك وبياناتك الشخصية بسهولة</p></a>
+      </div>
+    </section>
+
+    <section class="steps-section">
+      <div class="section-title"><h2>كيف يعمل؟</h2><p>٣ خطوات بسيطة من العطل إلى الحل</p></div>
+      <div class="steps-grid">
+        <div class="step-card"><div class="step-num">١</div><h3>أنشئ حسابك</h3><p>سجّل مجاناً في ثوانٍ</p></div>
+        <div class="step-card"><div class="step-num">٢</div><h3>صف المشكلة</h3><p>اكتب الأعراض أو ارفع صورة</p></div>
+        <div class="step-card"><div class="step-num">٣</div><h3>احصل على الحل</h3><p>تشخيص فوري + أقرب ورشة</p></div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <h2>جاهز تعرف سبب عطل سيارتك؟</h2>
+      <p>انضم الآن وابدأ التشخيص مجاناً</p>
+      <a href="register.html" class="btn-primary">ابدأ الآن مجاناً</a>
+    </section>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="dashboard" id="dashboardSection">
+    <div class="welcome-banner">
+      <div class="welcome-left">
+        <h2>مرحباً، <span id="userName">...</span> 👋</h2>
+        <p>أهلاً بك في FixNeuro — ماذا تريد أن تفعل اليوم؟</p>
+      </div>
+      <div class="welcome-avatar">👤</div>
+    </div>
+
+    <div class="section-label">الخدمات الرئيسية</div>
+    <div class="services-grid">
+      <a href="dia.html" class="service-card card-blue">
+        <div class="service-icon-wrap bg-blue">🔍</div>
+        <h3>تشخيص السيارة</h3>
+        <p>شخّص أي مشكلة بالنص أو الصورة واحصل على تحليل فوري</p>
+        <div class="card-arrow">ابدأ التشخيص ←</div>
+      </a>
+      <a href="map.html" class="service-card card-orange">
+        <div class="service-icon-wrap bg-orange">📍</div>
+        <h3>الورش القريبة</h3>
+        <p>اعثر على أقرب ورشة صيانة موثوقة مع التقييمات والاتصال</p>
+        <div class="card-arrow" style="color:#ffab40;">عرض الخريطة ←</div>
+      </a>
+      <a href="reports.html" class="service-card card-purple">
+        <div class="service-icon-wrap bg-purple">📊</div>
+        <h3>تقاريري</h3>
+        <p>راجع سجل تشخيصاتك ومصاريف الصيانة وتاريخ الأعطال</p>
+        <div class="card-arrow" style="color:#e040fb;">عرض التقارير ←</div>
+      </a>
+      <a href="account.html" class="service-card card-green">
+        <div class="service-icon-wrap bg-green">👤</div>
+        <h3>حسابي</h3>
+        <p>أدر معلومات حسابك وبياناتك الشخصية</p>
+        <div class="card-arrow" style="color:#69f0ae;">عرض الحساب ←</div>
+      </a>
+    </div>
+
+    <div class="section-label">إحصائياتي</div>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-icon">📋</div>
+        <div class="stat-text"><div class="num" id="reportsCount">0</div><div class="lbl">تقاريري</div></div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-icon">🔍</div>
+        <div class="stat-text"><div class="num" id="diagCount">0</div><div class="lbl">تشخيصاتي</div></div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-icon">📍</div>
+        <div class="stat-text"><div class="num">25</div><div class="lbl">ورشة متاحة</div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer><p>©️ 2025 FixNeuro - Car Doctor. جميع الحقوق محفوظة</p></footer>
+
+  <script type="module">
+    import { supabase } from './database.js'
+    async function init() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session && session.user) {
+          document.getElementById('guestNav').style.display = 'none'
+          document.getElementById('userNav').style.display = 'flex'
+          document.getElementById('guestSection').style.display = 'none'
+          document.getElementById('dashboardSection').style.display = 'block'
+          const user = session.user
+          const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
+          document.getElementById('userName').innerText = profile?.full_name || user.email?.split('@')[0] || 'مستخدم'
+          const { count: reportsCount } = await supabase.from('maintenance_reports').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
+          document.getElementById('reportsCount').innerText = reportsCount || 0
+          const { count: diagCount } = await supabase.from('diagnoses').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
+          document.getElementById('diagCount').innerText = diagCount || 0
+        }
+      } catch(e) { console.error(e) }
+    }
+    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+      e.preventDefault()
+      await supabase.auth.signOut()
+      window.location.href = 'splash.html'
+    })
+    init()
+  </script>
+</body>
+</html>

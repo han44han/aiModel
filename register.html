@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixNeuro - إنشاء حساب</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; background: #050d1a; color: white; }
+    .bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; }
+    .bg-shape { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15; }
+    .bg-shape-1 { width: 600px; height: 600px; background: #1a6fd4; top: -200px; right: -200px; animation: float1 8s ease-in-out infinite; }
+    .bg-shape-2 { width: 400px; height: 400px; background: #4db8ff; bottom: -100px; left: -100px; animation: float2 10s ease-in-out infinite; }
+    .bg-shape-3 { width: 300px; height: 300px; background: #0a3d7a; top: 40%; left: 30%; animation: float3 12s ease-in-out infinite; }
+    @keyframes float1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-30px,30px)} }
+    @keyframes float2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(30px,-20px)} }
+    @keyframes float3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-20px,20px)} }
+    .tool-icon { position: absolute; font-size: 40px; opacity: 0.06; animation: floatTool 15s ease-in-out infinite; }
+    .tool-icon:nth-child(4) { top: 15%; left: 8%; animation-delay: 0s; }
+    .tool-icon:nth-child(5) { top: 70%; left: 85%; animation-delay: 3s; }
+    .tool-icon:nth-child(6) { top: 40%; left: 5%; animation-delay: 6s; }
+    .tool-icon:nth-child(7) { top: 80%; left: 20%; animation-delay: 9s; }
+    @keyframes floatTool { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-20px) rotate(10deg)} }
+    nav { position: relative; z-index: 10; display: flex; justify-content: space-between; align-items: center; padding: 18px 30px; background: rgba(5,13,26,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(77,184,255,0.1); }
+    .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .logo-icon { width: 38px; height: 38px; background: linear-gradient(135deg, #1a6fd4, #4db8ff); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .logo-text { font-size: 20px; font-weight: 800; color: white; }
+    .logo-text span { color: #4db8ff; }
+    .container { position: relative; z-index: 5; flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+    .card { background: rgba(13,31,60,0.75); backdrop-filter: blur(30px); border-radius: 24px; padding: 45px 40px; width: 100%; max-width: 440px; border: 1px solid rgba(77,184,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05); }
+    .card-header { text-align: center; margin-bottom: 35px; }
+    .card-icon { width: 75px; height: 75px; background: linear-gradient(135deg, rgba(26,111,212,0.4), rgba(77,184,255,0.3)); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 34px; margin: 0 auto 20px; border: 1px solid rgba(77,184,255,0.3); box-shadow: 0 8px 25px rgba(26,111,212,0.3); }
+    .card-header h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+    .card-header p { color: #7a9abf; font-size: 14px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #aac4e0; }
+    .input-wrapper { position: relative; }
+    .input-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #7a9abf; pointer-events: none; display: flex; }
+    .toggle-pass { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #7a9abf; display: flex; align-items: center; padding: 0; transition: color 0.2s; }
+    .toggle-pass:hover { color: #4db8ff; }
+    .form-group input { width: 100%; padding: 13px 42px 13px 42px; background: rgba(10,25,50,0.6); border: 1.5px solid rgba(77,184,255,0.1); border-radius: 12px; color: white; font-size: 15px; outline: none; transition: all 0.3s; }
+    .form-group input:focus { border-color: #1a6fd4; background: rgba(10,25,50,0.9); box-shadow: 0 0 0 3px rgba(26,111,212,0.1); }
+    .form-group input.error-input { border-color: #ff5050; box-shadow: 0 0 0 3px rgba(255,80,80,0.1); }
+    .form-group input::placeholder { color: #2d4a6a; }
+    .hint { font-size: 11px; color: #7a9abf; margin-top: 5px; }
+    .field-error { font-size: 12px; color: #ff8080; margin-top: 6px; display: none; background: rgba(255,50,50,0.08); border: 1px solid rgba(255,50,50,0.2); padding: 7px 10px; border-radius: 8px; }
+    .btn-register { width: 100%; padding: 15px; background: linear-gradient(135deg, #1a6fd4, #1558a8); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; transition: all 0.3s; box-shadow: 0 8px 25px rgba(26,111,212,0.3); }
+    .btn-register:hover { transform: translateY(-2px); box-shadow: 0 12px 35px rgba(26,111,212,0.5); }
+    .btn-register:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .loading-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .divider { display: flex; align-items: center; gap: 15px; margin: 25px 0; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
+    .divider span { color: #3d5a7a; font-size: 13px; }
+    .login-link { text-align: center; font-size: 14px; color: #7a9abf; }
+    .login-link a { color: #4db8ff; text-decoration: none; font-weight: 600; }
+    .message { padding: 13px 16px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-size: 14px; display: none; }
+    .message.error { background: rgba(255,50,50,0.1); border: 1px solid rgba(255,50,50,0.3); color: #ff8080; }
+    .message.success { background: rgba(50,200,100,0.1); border: 1px solid rgba(50,200,100,0.3); color: #50c864; }
+    footer { position: relative; z-index: 5; background: rgba(5,13,26,0.8); padding: 18px; text-align: center; color: #3d5a7a; font-size: 13px; border-top: 1px solid rgba(255,255,255,0.03); }
+  </style>
+</head>
+<body>
+  <div class="bg-canvas">
+    <div class="bg-shape bg-shape-1"></div>
+    <div class="bg-shape bg-shape-2"></div>
+    <div class="bg-shape bg-shape-3"></div>
+    <div class="tool-icon">🔧</div>
+    <div class="tool-icon">🔩</div>
+    <div class="tool-icon">⚙️</div>
+    <div class="tool-icon">🛠️</div>
+  </div>
+  <nav>
+    <a href="splash.html" class="logo">
+      <div class="logo-icon">🔧</div>
+      <div class="logo-text">Fix<span>NEURO</span></div>
+    </a>
+    <a href="login.html" style="color:#4db8ff; text-decoration:none; font-size:14px; font-weight:600;">تسجيل الدخول</a>
+  </nav>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">👤</div>
+        <h2>إنشاء حساب جديد</h2>
+        <p>سجّل الآن وابدأ تشخيص سيارتك مجاناً</p>
+      </div>
+      <div class="message" id="message"></div>
+      <div class="form-group">
+        <label>الاسم الكامل</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+          <input type="text" id="name" placeholder="مثال: محمد أحمد" style="padding-left:16px;" />
+        </div>
+        <div class="field-error" id="nameError"></div>
+      </div>
+      <div class="form-group">
+        <label>البريد الإلكتروني</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+          <input type="email" id="email" placeholder="example@email.com" style="padding-left:16px;" />
+        </div>
+        <div class="field-error" id="emailError"></div>
+      </div>
+      <div class="form-group">
+        <label>رقم الجوال</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span>
+          <input type="tel" id="phone" placeholder="05xxxxxxxx" style="padding-left:16px;" />
+        </div>
+        <div class="hint">يجب أن يبدأ بـ 05 ويكون 10 أرقام</div>
+        <div class="field-error" id="phoneError"></div>
+      </div>
+      <div class="form-group">
+        <label>كلمة المرور</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+          <input type="password" id="password" placeholder="••••••••" />
+          <button class="toggle-pass" id="togglePass1" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="hint">حروف وأرقام، 8 أحرف على الأقل</div>
+        <div class="field-error" id="passError"></div>
+      </div>
+      <div class="form-group">
+        <label>تأكيد كلمة المرور</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+          <input type="password" id="confirm" placeholder="••••••••" />
+          <button class="toggle-pass" id="togglePass2" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="field-error" id="confirmError"></div>
+      </div>
+      <button class="btn-register" id="registerBtn">إنشاء الحساب</button>
+      <div class="divider"><span>أو</span></div>
+      <div class="login-link">عندك حساب؟ <a href="login.html">سجّل دخولك</a></div>
+    </div>
+  </div>
+  <footer><p>©️ 2025 FixNeuro - Car Doctor. جميع الحقوق محفوظة</p></footer>
+  <script type="module">
+    import { supabase } from './database.js'
+    const eyeOpen = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`
+    const eyeClosed = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
+    function togglePassword(inputId, btnId) {
+      const input = document.getElementById(inputId), btn = document.getElementById(btnId)
+      if (input.type === 'password') { input.type = 'text'; btn.innerHTML = eyeClosed }
+      else { input.type = 'password'; btn.innerHTML = eyeOpen }
+    }
+    document.getElementById('togglePass1').addEventListener('click', () => togglePassword('password', 'togglePass1'))
+    document.getElementById('togglePass2').addEventListener('click', () => togglePassword('confirm', 'togglePass2'))
+    function showFieldError(fieldId, msg) {
+      const el = document.getElementById(fieldId)
+      el.style.display = 'block'; el.textContent = msg
+      const inputId = fieldId.replace('Error', '')
+      if (document.getElementById(inputId)) document.getElementById(inputId).classList.add('error-input')
+    }
+    function clearErrors() {
+      document.querySelectorAll('.field-error').forEach(e => { e.style.display = 'none'; e.textContent = '' })
+      document.querySelectorAll('.error-input').forEach(e => e.classList.remove('error-input'))
+      document.getElementById('message').style.display = 'none'
+    }
+    function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) }
+    function isValidPassword(p) { return /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/.test(p) }
+    function isValidPhone(p) { return /^05\d{8}$/.test(p) }
+    document.getElementById('registerBtn').addEventListener('click', async function() {
+      clearErrors()
+      const name = document.getElementById('name').value.trim()
+      const email = document.getElementById('email').value.trim()
+      const phone = document.getElementById('phone').value.trim()
+      const password = document.getElementById('password').value
+      const confirm = document.getElementById('confirm').value
+      const btn = document.getElementById('registerBtn')
+      let valid = true
+      if (!name) { showFieldError('nameError', '⚠️ يرجى إدخال الاسم الكامل'); valid = false }
+      if (!email || !isValidEmail(email)) { showFieldError('emailError', '⚠️ يرجى إدخال بريد إلكتروني صحيح'); valid = false }
+      if (!isValidPhone(phone)) { showFieldError('phoneError', '⚠️ رقم الجوال يجب أن يبدأ بـ 05 ويكون 10 أرقام'); valid = false }
+      if (!isValidPassword(password)) { showFieldError('passError', '⚠️ كلمة المرور يجب أن تحتوي على حروف وأرقام وتكون 8 أحرف على الأقل'); valid = false }
+      if (password !== confirm) { showFieldError('confirmError', '⚠️ كلمة المرور وتأكيدها غير متطابقتين'); valid = false }
+      if (!valid) return
+      btn.disabled = true
+      btn.innerHTML = '<span class="loading-spinner"></span> جاري التحقق...'
+      // تحقق من تكرار الجوال
+      const { data: phoneCheck } = await supabase.from('profiles').select('id').eq('phone', phone).maybeSingle()
+      if (phoneCheck) {
+        showFieldError('phoneError', '⚠️ هذا الرقم مرتبط بحساب موجود مسبقًا')
+        btn.disabled = false; btn.innerHTML = 'إنشاء الحساب'; return
+      }
+      // إنشاء الحساب
+      const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name, phone } } })
+      btn.disabled = false; btn.innerHTML = 'إنشاء الحساب'
+      if (error) {
+        if (error.message.includes('already registered') || error.message.includes('User already registered')) {
+          showFieldError('emailError', '⚠️ هذا الإيميل مستخدم مسبقًا — سجّل دخولك أو استخدم إيميل آخر')
+        } else {
+          const msg = document.getElementById('message')
+          msg.style.display = 'block'; msg.className = 'message error'; msg.innerText = '❌ ' + error.message
+        }
+      } else {
+        const msg = document.getElementById('message')
+        msg.style.display = 'block'; msg.className = 'message success'
+        msg.innerText = '✅ تم إنشاء الحساب بنجاح! جاري تحويلك...'
+        setTimeout(() => window.location.href = 'login.html', 2000)
+      }
+    })
+  </script>
+</body>
+</html>
