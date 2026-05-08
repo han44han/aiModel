@@ -34,7 +34,7 @@ def get_model_file():
     
     # تحميل الموديل مباشرة من مستودعك في Hugging Face
     model_path = hf_hub_download(
-        repo_id="han77han/fixneuro",  # تأكدي أن هذا هو اسم حسابك والمستودع في HF
+        repo_id="han44han/aiModel",  # تأكدي أن هذا هو اسم حسابك والمستودع في HF
         filename="model_final.pth",
         token=hf_token
     )
